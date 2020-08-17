@@ -171,7 +171,6 @@ type Keys interface {
 }
 
 type WatchedScripts interface {
-
 	// Add scripts to watch
 	PutAll(scriptPubkeys [][]byte) error
 
@@ -183,6 +182,28 @@ type WatchedScripts interface {
 
 	// Delete a watched script
 	Delete(scriptPubKey []byte) error
+}
+
+type ScanBlocks interface {
+	Put(blockHash string, blockHeight int, isFixScan int) error
+
+	Get(blockHash string) (ScanBlock, error)
+
+	UpdateBlock(blockHash string, isFixScan int) error
+
+	Delete(blockHash string) error
+
+	GetLatestUnScanBlockHash() (string, error)
+}
+
+type NoticeTxs interface {
+	Put(txHash string, value int, wechatTxId string, isNotice int) error
+
+	Get(txHash string) (NoticeTx, error)
+
+	UpdateBlock(txHash string, value int, wechatTxId string, isNotice int) error
+
+	Delete(txHash string) error
 }
 
 type Utxo struct {
@@ -299,7 +320,18 @@ type Txn struct {
 
 	Outputs []TransactionOutput
 }
+type ScanBlock struct {
+	BlockHash   string
+	BlockHeight int
+	IsFixScan   int
+}
 
+type NoticeTx struct {
+	TxHash     string
+	Value      int
+	WechatTxId string
+	IsNotice   int
+}
 type StatusCode string
 
 const (
