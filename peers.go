@@ -151,6 +151,7 @@ func NewPeerManager(config *PeerManagerConfig) (*PeerManager, error) {
 	listeners.OnInv = pm.onInv
 	listeners.OnTx = pm.onTx
 	listeners.OnReject = pm.onReject
+	listeners.OnBlock = pm.onBlock
 
 	pm.peerConfig = &peer.Config{
 		UserAgentName:    config.UserAgentName,
@@ -368,6 +369,12 @@ func (pm *PeerManager) onTx(p *peer.Peer, msg *wire.MsgTx) {
 
 func (pm *PeerManager) onReject(p *peer.Peer, msg *wire.MsgReject) {
 	log.Warningf("Received reject message from peer %d: Code: %s, Hash %s, Reason: %s", int(p.ID()), msg.Code.String(), msg.Hash.String(), msg.Reason)
+}
+
+func (pm *PeerManager) onBlock(p *peer.Peer, msg *wire.MsgBlock) {
+	if pm.msgChan != nil {
+		pm.msgChan <- blockMsg{msg, p}
+	}
 }
 
 func (pm *PeerManager) Start() {

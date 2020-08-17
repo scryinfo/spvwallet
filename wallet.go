@@ -169,6 +169,16 @@ func NewSPVWallet(config *Config) (*SPVWallet, error) {
 	return w, nil
 }
 
+var ScryStartBlock = 643000
+var IntervalToScanBlock = time.Second * 5
+var TargetScanAddresses []string
+
+func (w *SPVWallet) LoadConfig(scryStartBlock int, intervalScanBlock time.Duration, targetScanAddress []string) {
+	ScryStartBlock = scryStartBlock
+	IntervalToScanBlock = intervalScanBlock
+	TargetScanAddresses = targetScanAddress
+}
+
 func (w *SPVWallet) Start() {
 	w.running = true
 	go w.wireService.Start()

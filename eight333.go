@@ -1,11 +1,17 @@
 package spvwallet
 
 import (
+	"encoding/hex"
+	"errors"
+	"fmt"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	peerpkg "github.com/btcsuite/btcd/peer"
+	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
+	btc "github.com/btcsuite/btcutil"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -13,6 +19,9 @@ const (
 	maxRequestedTxns  = wire.MaxInvPerMsg
 	maxFalsePositives = 7
 )
+
+var lastTimeRequestBlock = time.Now()
+var alivePeer *peerpkg.Peer
 
 // newPeerMsg signifies a newly connected peer to the block handler.
 type newPeerMsg struct {
@@ -29,6 +38,11 @@ type donePeerMsg struct {
 type headersMsg struct {
 	headers *wire.MsgHeaders
 	peer    *peerpkg.Peer
+}
+
+type blockMsg struct {
+	block *wire.MsgBlock
+	peer  *peerpkg.Peer
 }
 
 // merkleBlockMsg packages a merkle block message and the peer it came from
@@ -123,6 +137,46 @@ func (ws *WireService) Start() {
 	if err != nil {
 		log.Error(err.Error())
 	}
+
+	go func() {
+		// 加入定时监听 ,发起请求区块blockHash 请求，查找数据库中记录的，还未收到的blockhash
+		var intervalTimer = time.NewTicker(IntervalToScanBlock)
+		defer intervalTimer.Stop()
+		var requestBlockFunc = func() {
+			if time.Now().After(lastTimeRequestBlock.Add(IntervalToScanBlock)) {
+				if alivePeer == nil {
+					fmt.Println("alivePeer is nil,time.Now().String()===>", time.Now().String())
+					return
+				}
+				fmt.Println("intervalTimer to do request again ,lastTimeRequestBlock is ===>", lastTimeRequestBlock)
+				var blockHashDb, err = ws.txStore.ScanBlocks().GetLatestUnScanBlockHash()
+				if err != nil {
+					fmt.Println("ws.txStore.ScanBlocks().GetLatestUnScanBlockHash error is ===>", err)
+					return
+				}
+				fmt.Println("blockHashDb is ===>", blockHashDb)
+				var blockHash, err1 = chainhash.NewHashFromStr(blockHashDb)
+				if err1 != nil {
+					fmt.Println("chainhash.NewHashFromSt error is ===>", err)
+					return
+				}
+				var invet *wire.InvVect = wire.NewInvVect(wire.InvTypeBlock, blockHash)
+				gdmsg2 := wire.NewMsgGetData()
+				gdmsg2.AddInvVect(invet)
+				alivePeer.QueueMessage(gdmsg2, nil)
+				fmt.Println("requestBlockFunc() send wire.InvTypeBlock request %s =-->", blockHash.String())
+			} else {
+				fmt.Println("time not enougth  something===>", lastTimeRequestBlock.Local().String()+"||time.Now()--->"+time.Now().String())
+			}
+		}
+		for {
+			select {
+			case <-intervalTimer.C:
+				requestBlockFunc()
+			}
+		}
+	}()
+
 	log.Infof("Starting wire service at height %d", int(best.height))
 out:
 	for {
@@ -137,10 +191,12 @@ out:
 				ws.handleHeadersMsg(&msg)
 			case merkleBlockMsg:
 				ws.handleMerkleBlockMsg(&msg)
+			case blockMsg:
+				ws.handleBlockMsg(&msg)
 			case invMsg:
 				ws.handleInvMsg(&msg)
-			case txMsg:
-				ws.handleTxMsg(&msg)
+			/*case txMsg:
+			ws.handleTxMsg(&msg)*/
 			case updateFiltersMsg:
 				ws.handleUpdateFiltersMsg()
 			default:
@@ -343,6 +399,9 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 		return
 	}
 
+	//update the alivePeer
+	alivePeer = peer
+
 	msg := hmsg.headers
 	numHeaders := len(msg.Headers)
 
@@ -356,19 +415,39 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 	// request merkle blocks from this point forward and exit the function.
 	badHeaders := 0
 	for _, blockHeader := range msg.Headers {
-		if blockHeader.Timestamp.Before(ws.walletCreationDate.Add(-time.Hour * 24 * 7)) {
-			_, _, height, err := ws.chain.CommitHeader(*blockHeader)
-			if err != nil {
-				badHeaders++
-				log.Errorf("Commit header error: %s", err.Error())
+		//if blockHeader.Timestamp.Before(ws.walletCreationDate.Add(-time.Hour * 24 * 7)) {
+		_, _, height, err := ws.chain.CommitHeader(*blockHeader)
+		if err != nil {
+			badHeaders++
+			log.Errorf("Commit header error: %s", err.Error())
+		}
+		log.Infof("Received header %s at height %d", blockHeader.BlockHash().String(), height)
+		{
+			if height > ScryStartBlock {
+				{
+					var invet = wire.InvVect{
+						Type: wire.InvTypeBlock,
+						Hash: blockHeader.BlockHash(),
+					}
+					gdmsg2 := wire.NewMsgGetData()
+					gdmsg2.AddInvVect(&invet)
+					peer.QueueMessage(gdmsg2, nil)
+					log.Infof("send wire.InvTypeBlock request %s || height is %d", blockHeader.BlockHash().String(), height)
+				}
+				{
+					err = ws.txStore.ScanBlocks().Put(blockHeader.BlockHash().String(), int(height), int(0)) // isFixScan 0:failure  1:successful
+					if err != nil {
+						log.Infof("ws.txStore.ScanBlocks().Put err is ", err)
+					}
+				}
 			}
-			log.Infof("Received header %s at height %d", blockHeader.BlockHash().String(), height)
-		} else {
+		}
+		/*} else {
 			log.Info("Switching to downloading merkle blocks")
 			locator := ws.chain.GetBlockLocator()
 			peer.PushGetBlocksMsg(locator, &ws.zeroHash)
 			return
-		}
+		}*/
 	}
 	// Usually the peer will send the header at the tip of the chain in each batch. This will trigger
 	// one commit error so we'll consider that acceptable, but anything more than that suggests misbehavior
@@ -386,6 +465,95 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 		log.Warningf("Failed to send getheaders message to peer %s: %v", peer.Addr(), err)
 		return
 	}
+}
+
+func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
+	log.Warningf("parker handleBlockMsg method is enter！！！")
+	peer := bmsg.peer
+	_, exists := ws.peerStates[peer]
+	if !exists {
+		log.Warningf(" parker Received merkle block message from unknown peer %s", peer)
+		return
+	}
+
+	//update lastTimeRequestBlock
+	lastTimeRequestBlock = time.Now()
+	//update the alivePeer
+	alivePeer = peer
+
+	go func() {
+		block := bmsg.block
+		header := block.Header
+		blockHash := header.BlockHash()
+		//	log.Warningf("parker block timestamp is %v ,|| header.BlockHash() is ==> %s ,previous hash is %s", header.Timestamp, blockHash, header.PrevBlock)
+		txs := block.Transactions
+		var isSuccessAnalyseAllBlock = true
+		{
+		AnalyseTxsLabel:
+			for _, value := range txs {
+				var txeg = value
+				//var txIn = txeg.TxIn
+				var txOut = txeg.TxOut
+				var tempPkScript []byte
+				var tempValue int64
+				var isExistTargetAddress = false
+				for _, value := range txOut {
+					config := NewDefaultConfig()
+					config.Params = &chaincfg.MainNetParams
+					//log.Warningf("parker txOut.index is %v, || value is ==> %v ", index, value)
+					var btcAddr, err = scryScriptToAddress(value.PkScript, &chaincfg.MainNetParams)
+					if err != nil {
+						if len(value.PkScript) > 2 {
+							tempPkScript = value.PkScript[2:] //前2位是标识位，取后面内容
+						}
+						// log.Warningf("parker  analyse address failure  ", err)
+					} else {
+						//	log.Warningf("parker  btcAddr is =====> %v ,txHash is ", btcAddr, txeg.TxHash().String())
+						if len(TargetScanAddresses) > 0 {
+							for _, address := range TargetScanAddresses {
+								if strings.ToLower(strings.Trim(btcAddr.String(), "")) == strings.ToLower(strings.Trim(address, "")) {
+									//	log.Infof("appear equal txeg.TxHash()===> ", txeg.TxHash().String())
+									tempValue = value.Value
+									isExistTargetAddress = true
+								}
+							}
+						} else {
+							fmt.Println("err,  error is no watch TargetScanAddresses")
+						}
+					}
+				}
+				if (isExistTargetAddress) { // 写入这笔交易到数据库，标识通知到小程序的状态为 未通知
+					log.Warningf("parker  txHash is %v, tempPkScrip =====> %v ", txeg.TxHash().String(), hex.EncodeToString(tempPkScript[:]))
+					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), 0) // isNotice 0:failure , 1:successful
+					if err != nil {
+						log.Infof("ws.txStore.ScanBlocks().Put err is =>", err)
+						isSuccessAnalyseAllBlock = false
+						break AnalyseTxsLabel
+					}
+					isExistTargetAddress = false
+				}
+				//	log.Warningf("parker the end of for each txOut index is -----%v", index)
+			}
+			//	log.Warningf("parker the end of for Block  blockHahs is -----%v", blockHash)
+		}
+		if (isSuccessAnalyseAllBlock) {
+			var err = ws.txStore.ScanBlocks().UpdateBlock(blockHash.String(), int(1)) // isFixScan 0:failure  1:successful
+			if err != nil {
+				log.Infof("ws.txStore.ScanBlocks().Put err is ", err)
+			}
+		}
+	}()
+}
+
+func scryScriptToAddress(script []byte, params *chaincfg.Params) (btc.Address, error) {
+	_, addrs, _, err := txscript.ExtractPkScriptAddrs(script, params)
+	if err != nil {
+		return &btc.AddressPubKeyHash{}, err
+	}
+	if len(addrs) == 0 {
+		return &btc.AddressPubKeyHash{}, errors.New("unknown script")
+	}
+	return addrs[0], nil
 }
 
 // handleMerkleBlockMsg handles merkle block messages from all peers.  Merkle blocks are
@@ -487,6 +655,13 @@ func (ws *WireService) handleMerkleBlockMsg(bmsg *merkleBlockMsg) {
 
 	log.Infof("Received merkle block %s at height %d", blockHash.String(), newHeight)
 
+	{
+		err = ws.txStore.ScanBlocks().Put(header.BlockHash().String(), int(newHeight), int(0)) // isFixScan 0:failure  1:successful
+		if err != nil {
+			log.Infof("ws.txStore.ScanBlocks().Put err is ", err)
+		}
+	}
+
 	// Check reorg
 	if reorg != nil && ws.Current() {
 		// Rollback the appropriate transactions in our database
@@ -537,6 +712,9 @@ func (ws *WireService) handleInvMsg(imsg *invMsg) {
 		log.Warningf("Received inv message from unknown peer %s", peer)
 		return
 	}
+
+	//update the alivePeer
+	alivePeer = peer
 
 	// Attempt to find the final block in the inventory list.  There may
 	// not be one.

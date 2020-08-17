@@ -652,7 +652,6 @@ func (ws *WireService) handleMerkleBlockMsg(bmsg *merkleBlockMsg) {
 
 	log.Infof("Received merkle block %s at height %d", blockHash.String(), newHeight)
 
-	log.Infof("Received merkle block %s at height %d", blockHash.String(), newHeight)
 	{
 		err = ws.txStore.ScanBlocks().Put(header.BlockHash().String(), int(newHeight), int(0)) // isFixScan 0:failure  1:successful
 		if err != nil {
