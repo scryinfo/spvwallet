@@ -90,6 +90,8 @@ type Datastore interface {
 	Txns() Txns
 	Keys() Keys
 	WatchedScripts() WatchedScripts
+	ScanBlocks() ScanBlocks
+	NoticeTxs() NoticeTxs
 }
 
 type Utxos interface {

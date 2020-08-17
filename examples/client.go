@@ -16,6 +16,7 @@ import (
 	"github.com/OpenBazaar/spvwallet"
 	"github.com/OpenBazaar/spvwallet/db"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/scryinfo/scryg/sutils/ssignal"
 )
 
 const (
@@ -87,6 +88,10 @@ func main() {
 			}
 		}
 	}
+
+	ssignal.WaitCtrlC(func(s os.Signal) bool { //third wait for exit
+		return false
+	})
 }
 
 func loadWatchAddressFromFile() []string {

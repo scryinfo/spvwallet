@@ -17,6 +17,8 @@ type SQLiteDatastore struct {
 	stxos          wallet.Stxos
 	txns           wallet.Txns
 	watchedScripts wallet.WatchedScripts
+	scanBlocks     wallet.ScanBlocks
+	noticeTxs      wallet.NoticeTxs
 	db             *sql.DB
 	lock           *sync.RWMutex
 }

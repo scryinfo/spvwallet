@@ -1,11 +1,17 @@
 package spvwallet
 
 import (
+	"encoding/hex"
+	"errors"
+	"fmt"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	peerpkg "github.com/btcsuite/btcd/peer"
+	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
+	btc "github.com/btcsuite/btcutil"
 	"net"
+	"strings"
 	"time"
 )
 
