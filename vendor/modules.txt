@@ -1,0 +1,199 @@
+# github.com/OpenBazaar/jsonpb v0.0.0-20171123000858-37d32ddf4eef
+## explicit
+github.com/OpenBazaar/jsonpb
+# github.com/OpenBazaar/spvwallet v0.0.0-20200112224336-39f04e8d6d34
+## explicit
+github.com/OpenBazaar/spvwallet
+github.com/OpenBazaar/spvwallet/api
+github.com/OpenBazaar/spvwallet/api/pb
+github.com/OpenBazaar/spvwallet/cli
+github.com/OpenBazaar/spvwallet/db
+github.com/OpenBazaar/spvwallet/exchangerates
+github.com/OpenBazaar/spvwallet/gui
+github.com/OpenBazaar/spvwallet/gui/bootstrap
+# github.com/OpenBazaar/wallet-interface v0.0.0-20191220170011-ba95db86ca2f
+## explicit
+github.com/OpenBazaar/wallet-interface
+# github.com/asticode/go-astilectron v0.9.3
+## explicit
+github.com/asticode/go-astilectron
+# github.com/asticode/go-astilog v1.2.0
+## explicit
+github.com/asticode/go-astilog
+# github.com/asticode/go-astitools v1.2.2
+## explicit
+github.com/asticode/go-astitools/archive
+github.com/asticode/go-astitools/context
+github.com/asticode/go-astitools/exec
+github.com/asticode/go-astitools/http
+github.com/asticode/go-astitools/io
+github.com/asticode/go-astitools/os
+github.com/asticode/go-astitools/regexp
+github.com/asticode/go-astitools/template
+github.com/asticode/go-astitools/url
+# github.com/atotto/clipboard v0.1.2
+## explicit
+github.com/atotto/clipboard
+# github.com/boltdb/bolt v1.3.1
+## explicit
+github.com/boltdb/bolt
+# github.com/btcsuite/btcd v0.20.1-beta
+## explicit
+github.com/btcsuite/btcd/addrmgr
+github.com/btcsuite/btcd/blockchain
+github.com/btcsuite/btcd/btcec
+github.com/btcsuite/btcd/chaincfg
+github.com/btcsuite/btcd/chaincfg/chainhash
+github.com/btcsuite/btcd/connmgr
+github.com/btcsuite/btcd/database
+github.com/btcsuite/btcd/peer
+github.com/btcsuite/btcd/txscript
+github.com/btcsuite/btcd/wire
+# github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f
+github.com/btcsuite/btclog
+# github.com/btcsuite/btcutil v0.0.0-20191219182022-e17c9730c422
+## explicit
+github.com/btcsuite/btcutil
+github.com/btcsuite/btcutil/base58
+github.com/btcsuite/btcutil/bech32
+github.com/btcsuite/btcutil/bloom
+github.com/btcsuite/btcutil/coinset
+github.com/btcsuite/btcutil/hdkeychain
+github.com/btcsuite/btcutil/txsort
+# github.com/btcsuite/btcwallet/wallet/txauthor v1.0.0
+## explicit
+github.com/btcsuite/btcwallet/wallet/txauthor
+# github.com/btcsuite/btcwallet/wallet/txrules v1.0.0
+## explicit
+github.com/btcsuite/btcwallet/wallet/txrules
+# github.com/btcsuite/btcwallet/wallet/txsizes v1.0.0
+github.com/btcsuite/btcwallet/wallet/txsizes
+# github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd
+github.com/btcsuite/go-socks/socks
+# github.com/btcsuite/goleveldb v1.0.0
+## explicit
+github.com/btcsuite/goleveldb/leveldb/errors
+github.com/btcsuite/goleveldb/leveldb/storage
+github.com/btcsuite/goleveldb/leveldb/util
+# github.com/cevaris/ordered_map v0.0.0-20190319150403-3adeae072e73
+## explicit
+github.com/cevaris/ordered_map
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/fatih/color v1.7.0
+## explicit
+github.com/fatih/color
+# github.com/golang/protobuf v1.3.2
+## explicit
+github.com/golang/protobuf/proto
+github.com/golang/protobuf/protoc-gen-go/descriptor
+github.com/golang/protobuf/ptypes
+github.com/golang/protobuf/ptypes/any
+github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes/timestamp
+# github.com/jessevdk/go-flags v1.4.0
+## explicit
+github.com/jessevdk/go-flags
+# github.com/julienschmidt/httprouter v1.3.0
+## explicit
+github.com/julienschmidt/httprouter
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
+github.com/konsorten/go-windows-terminal-sequences
+# github.com/mattn/go-colorable v0.1.4
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.11
+## explicit
+github.com/mattn/go-isatty
+# github.com/mattn/go-sqlite3 v2.0.2+incompatible
+## explicit
+github.com/mattn/go-sqlite3
+# github.com/mitchellh/go-homedir v1.1.0
+## explicit
+github.com/mitchellh/go-homedir
+# github.com/natefinch/lumberjack v0.0.0-20170531160350-a96e63847dc3
+## explicit
+github.com/natefinch/lumberjack
+# github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
+## explicit
+github.com/op/go-logging
+# github.com/pkg/errors v0.8.1
+## explicit
+github.com/pkg/errors
+# github.com/sirupsen/logrus v1.4.2
+github.com/sirupsen/logrus
+# github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
+## explicit
+github.com/skratchdot/open-golang/open
+# github.com/tyler-smith/go-bip39 v1.0.2
+## explicit
+github.com/tyler-smith/go-bip39
+github.com/tyler-smith/go-bip39/wordlists
+# github.com/yawning/bulb v0.0.0-20170405033506-85d80d893c3d
+## explicit
+github.com/yawning/bulb
+github.com/yawning/bulb/utils
+github.com/yawning/bulb/utils/pkcs1
+# golang.org/x/crypto v0.0.0-20191205161847-0a08dada0ff9
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/ripemd160
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a
+## explicit
+golang.org/x/net/context
+golang.org/x/net/context/ctxhttp
+golang.org/x/net/http/httpguts
+golang.org/x/net/http2
+golang.org/x/net/http2/hpack
+golang.org/x/net/idna
+golang.org/x/net/internal/socks
+golang.org/x/net/internal/timeseries
+golang.org/x/net/proxy
+golang.org/x/net/trace
+# golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/text v0.3.2
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+# google.golang.org/genproto v0.0.0-20190201180003-4b09977fb922
+## explicit
+google.golang.org/genproto/googleapis/rpc/status
+# google.golang.org/grpc v1.18.0
+## explicit
+google.golang.org/grpc
+google.golang.org/grpc/balancer
+google.golang.org/grpc/balancer/base
+google.golang.org/grpc/balancer/roundrobin
+google.golang.org/grpc/binarylog/grpc_binarylog_v1
+google.golang.org/grpc/codes
+google.golang.org/grpc/connectivity
+google.golang.org/grpc/credentials
+google.golang.org/grpc/credentials/internal
+google.golang.org/grpc/encoding
+google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/grpclog
+google.golang.org/grpc/internal
+google.golang.org/grpc/internal/backoff
+google.golang.org/grpc/internal/binarylog
+google.golang.org/grpc/internal/channelz
+google.golang.org/grpc/internal/envconfig
+google.golang.org/grpc/internal/grpcrand
+google.golang.org/grpc/internal/grpcsync
+google.golang.org/grpc/internal/syscall
+google.golang.org/grpc/internal/transport
+google.golang.org/grpc/keepalive
+google.golang.org/grpc/metadata
+google.golang.org/grpc/naming
+google.golang.org/grpc/peer
+google.golang.org/grpc/reflection
+google.golang.org/grpc/reflection/grpc_reflection_v1alpha
+google.golang.org/grpc/resolver
+google.golang.org/grpc/resolver/dns
+google.golang.org/grpc/resolver/passthrough
+google.golang.org/grpc/stats
+google.golang.org/grpc/status
+google.golang.org/grpc/tap
+# gopkg.in/natefinch/lumberjack.v2 v2.0.0
+## explicit
