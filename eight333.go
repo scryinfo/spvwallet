@@ -423,7 +423,7 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 		}
 		log.Infof("Received header %s at height %d", blockHeader.BlockHash().String(), height)
 		{
-			if height > ScryStartBlock {
+			if int(height) > ScryStartBlock {
 				{
 					var invet = wire.InvVect{
 						Type: wire.InvTypeBlock,
