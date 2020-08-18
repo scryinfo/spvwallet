@@ -33,7 +33,6 @@ const MaxGetAddressAttempts = 10
 var SFNodeBitcoinCash wire.ServiceFlag = 1 << 5
 
 type PeerManagerConfig struct {
-
 	// The network parameters to use
 	Params *chaincfg.Params
 
@@ -371,7 +370,7 @@ func (pm *PeerManager) onReject(p *peer.Peer, msg *wire.MsgReject) {
 	log.Warningf("Received reject message from peer %d: Code: %s, Hash %s, Reason: %s", int(p.ID()), msg.Code.String(), msg.Hash.String(), msg.Reason)
 }
 
-func (pm *PeerManager) onBlock(p *peer.Peer, msg *wire.MsgBlock) {
+func (pm *PeerManager) onBlock(p *peer.Peer, msg *wire.MsgBlock, buf []byte) {
 	if pm.msgChan != nil {
 		pm.msgChan <- blockMsg{msg, p}
 	}
