@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
-	"github.com/OpenBazaar/wallet-interface"
+	"github.com/scryinfo/wallet-interface"
 	"github.com/btcsuite/btcd/btcec"
 	"sync"
 	"testing"

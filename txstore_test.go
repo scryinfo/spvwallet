@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/OpenBazaar/wallet-interface"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/scryinfo/wallet-interface"
 	"testing"
 	"time"
 )

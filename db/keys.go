@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/OpenBazaar/wallet-interface"
+	"github.com/scryinfo/wallet-interface"
 	"github.com/btcsuite/btcd/btcec"
 	"math/rand"
 	"strconv"

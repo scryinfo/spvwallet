@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/OpenBazaar/jsonpb v0.0.0-20171123000858-37d32ddf4eef
 	github.com/OpenBazaar/spvwallet v0.0.0-20200112224336-39f04e8d6d34
-	github.com/OpenBazaar/wallet-interface v0.0.0-20191220170011-ba95db86ca2f
+	github.com/OpenBazaar/wallet-interface v0.0.0-20191220170011-ba95db86ca2f // indirect
 	github.com/asticode/go-astilectron v0.9.3
 	github.com/asticode/go-astilog v1.2.0
 	github.com/asticode/go-astitools v1.2.2
@@ -28,6 +28,7 @@ require (
 	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
 	github.com/pkg/errors v0.8.1
 	github.com/scryinfo/scryg v0.1.3
+	github.com/scryinfo/wallet-interface v0.0.0-20200818005118-574bbc0ff571
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/tyler-smith/go-bip39 v1.0.2
 	github.com/yawning/bulb v0.0.0-20170405033506-85d80d893c3d
