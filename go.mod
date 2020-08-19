@@ -28,7 +28,7 @@ require (
 	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
 	github.com/pkg/errors v0.8.1
 	github.com/scryinfo/scryg v0.1.3
-	github.com/scryinfo/wallet-interface v0.0.0-20200819020013-c15ba637f47f
+	github.com/scryinfo/wallet-interface v0.0.0-20200819021211-ba6bbf089781
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/tyler-smith/go-bip39 v1.0.2
 	github.com/yawning/bulb v0.0.0-20170405033506-85d80d893c3d
