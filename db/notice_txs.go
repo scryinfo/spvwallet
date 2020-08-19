@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/scryinfo/wallet-interface"
 	"sync"
 )
@@ -52,7 +51,6 @@ func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, target
 	defer stmt.Close()
 	if err != nil {
 		tx.Rollback()
-		fmt.Println("err is ", err)
 		return err
 	}
 	_, err = stmt.Exec(txHash, value, wechatTxId, targetAddress, isNotice, noticedCount)

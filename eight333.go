@@ -145,28 +145,26 @@ func (ws *WireService) Start() {
 		var requestBlockFunc = func() {
 			if time.Now().After(lastTimeRequestBlock.Add(IntervalToScanBlock)) {
 				if alivePeer == nil {
-					fmt.Println("alivePeer is nil,time.Now().String()===>", time.Now().String())
+					log.Info("alivePeer is nil,time.Now().String()===>", time.Now().String())
 					return
 				}
-				fmt.Println("intervalTimer to do request again ,lastTimeRequestBlock is ===>", lastTimeRequestBlock)
 				var blockHashDb, err = ws.txStore.ScanBlocks().GetLatestUnScanBlockHash()
 				if err != nil {
-					fmt.Println("ws.txStore.ScanBlocks().GetLatestUnScanBlockHash error is ===>", err)
+					log.Info("ws.txStore.ScanBlocks().GetLatestUnScanBlockHash error is ===>", err)
 					return
 				}
-				fmt.Println("blockHashDb is ===>", blockHashDb)
 				var blockHash, err1 = chainhash.NewHashFromStr(blockHashDb)
 				if err1 != nil {
-					fmt.Println("chainhash.NewHashFromSt error is ===>", err)
+					log.Info("chainhash.NewHashFromSt error is ===>", err)
 					return
 				}
 				var invet *wire.InvVect = wire.NewInvVect(wire.InvTypeBlock, blockHash)
 				gdmsg2 := wire.NewMsgGetData()
 				gdmsg2.AddInvVect(invet)
 				alivePeer.QueueMessage(gdmsg2, nil)
-				fmt.Println("requestBlockFunc() send wire.InvTypeBlock request %s =-->", blockHash.String())
+				log.Info("requestBlockFunc(), send wire.InvTypeBlock request blockHash is  %s ===>", blockHash.String())
 			} else {
-				fmt.Println("time not enougth  something===>", lastTimeRequestBlock.Local().String()+"||time.Now()--->"+time.Now().String())
+				log.Info("time not enougth  something===>", lastTimeRequestBlock.Local().String()+"||time.Now()--->"+time.Now().String())
 			}
 		}
 		for {
@@ -468,7 +466,6 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 }
 
 func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
-	log.Warningf("parker handleBlockMsg method is enter！！！")
 	peer := bmsg.peer
 	_, exists := ws.peerStates[peer]
 	if !exists {
@@ -485,14 +482,13 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 		block := bmsg.block
 		header := block.Header
 		blockHash := header.BlockHash()
-		//	log.Warningf("parker block timestamp is %v ,|| header.BlockHash() is ==> %s ,previous hash is %s", header.Timestamp, blockHash, header.PrevBlock)
+		log.Warningf("handleBlockMsg(): header.BlockHash() is ==> %s ,|| block timestamp is %v ,|| previous hash is %s", blockHash, header.Timestamp, header.PrevBlock)
 		txs := block.Transactions
 		var isSuccessAnalyseAllBlock = true
 		{
 		AnalyseTxsLabel:
 			for _, value := range txs {
 				var txeg = value
-				//var txIn = txeg.TxIn
 				var txOut = txeg.TxOut
 				var tempPkScript []byte
 				var tempValue int64
@@ -507,10 +503,9 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 						if len(value.PkScript) > 2 {
 							tempPkScript = value.PkScript[2:] //前2位是标识位，取后面内容
 						}
-						// log.Warningf("parker  analyse address failure  ", err)
 					} else {
 						//	log.Warningf("parker  btcAddr is =====> %v ,txHash is ", btcAddr, txeg.TxHash().String())
-						if len(TargetScanAddresses) > 0 {
+						if (TargetScanAddresses != nil) && len(TargetScanAddresses) > 0 {
 							for _, address := range TargetScanAddresses {
 								if strings.ToLower(strings.Trim(btcAddr.String(), "")) == strings.ToLower(strings.Trim(address, "")) {
 									//	log.Infof("appear equal txeg.TxHash()===> ", txeg.TxHash().String())
@@ -520,7 +515,7 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 								}
 							}
 						} else {
-							fmt.Println("err,  error is no watch TargetScanAddresses")
+							fmt.Println("err(), error is===> no watch TargetScanAddresses")
 						}
 					}
 				}
@@ -534,11 +529,9 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 					}
 					isExistTargetAddress = false
 				}
-				//	log.Warningf("parker the end of for each txOut index is -----%v", index)
 			}
-			//	log.Warningf("parker the end of for Block  blockHahs is -----%v", blockHash)
 		}
-		if (isSuccessAnalyseAllBlock) {
+		if isSuccessAnalyseAllBlock {
 			var err = ws.txStore.ScanBlocks().UpdateBlock(blockHash.String(), int(1)) // isFixScan 0:failure  1:successful
 			if err != nil {
 				log.Infof("ws.txStore.ScanBlocks().Put err is ", err)
