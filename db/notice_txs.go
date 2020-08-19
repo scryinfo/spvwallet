@@ -60,19 +60,19 @@ func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, isNoti
 	return nil
 }
 
-func (txdb *NoticeTxsDB) UpdateBlock(txHash string, value int, wechatTxId string, isNotice int) error {
+func (txdb *NoticeTxsDB) UpdateBlock(txHash string, value int, wechatTxId string, isNotice int, noticedCount int) error {
 	txdb.lock.Lock()
 	defer txdb.lock.Unlock()
 	tx, err := txdb.db.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare("update noticeTx set value=?, wechatTxId=? , isNotice=? where txHash=?")
+	stmt, err := tx.Prepare("update noticeTx set value=?, wechatTxId=? , isNotice=? ,noticedCount=? where txHash=?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(value, wechatTxId, isNotice, txHash)
+	_, err = stmt.Exec(value, wechatTxId, isNotice, noticedCount, txHash)
 	if err != nil {
 		tx.Rollback()
 		return err
