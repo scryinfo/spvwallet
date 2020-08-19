@@ -37,21 +37,21 @@ func (txdb *NoticeTxsDB) Get(txHash string) (wallet.NoticeTx, error) {
 	return noTx, nil
 }
 
-func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, isNotice int) error {
+func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, isNotice int, noticedCount int) error {
 	txdb.lock.Lock()
 	defer txdb.lock.Unlock()
 	tx, err := txdb.db.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare("insert or replace into noticeTx(txHash, value, wechatTxId,isNotice) values(?,?,?,?)")
+	stmt, err := tx.Prepare("insert or replace into noticeTx(txHash, value, wechatTxId, isNotice, noticedCount) values(?,?,?,?,?)")
 	defer stmt.Close()
 	if err != nil {
 		tx.Rollback()
 		fmt.Println("err is ", err)
 		return err
 	}
-	_, err = stmt.Exec(txHash, value, wechatTxId, isNotice)
+	_, err = stmt.Exec(txHash, value, wechatTxId, isNotice, noticedCount)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -60,7 +60,7 @@ func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, isNoti
 	return nil
 }
 
-func (txdb *NoticeTxsDB) UpdateBlock(txHash string, value int, wechatTxId string, isNotice int, noticedCount int) error {
+func (txdb *NoticeTxsDB) UpdateNotice(txHash string, value int, wechatTxId string, isNotice int, noticedCount int) error {
 	txdb.lock.Lock()
 	defer txdb.lock.Unlock()
 	tx, err := txdb.db.Begin()
