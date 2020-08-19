@@ -23,35 +23,39 @@ func (txdb *NoticeTxsDB) Get(txHash string) (wallet.NoticeTx, error) {
 	defer stmt.Close()
 	var value int
 	var wechatTxId string
+	var targetAddress string
 	var isNotice int
-	err = stmt.QueryRow(txHash).Scan(&value, &wechatTxId, &isNotice)
+	var noticedCount int
+	err = stmt.QueryRow(txHash).Scan(&value, &wechatTxId, &targetAddress, &isNotice, &noticedCount)
 	if err != nil {
 		return noTx, err
 	}
 	noTx = wallet.NoticeTx{
-		TxHash:     txHash,
-		Value:      value,
-		WechatTxId: wechatTxId,
-		IsNotice:   isNotice,
+		TxHash:        txHash,
+		Value:         value,
+		WechatTxId:    wechatTxId,
+		TargetAddress: targetAddress,
+		IsNotice:      isNotice,
+		NoticedCount:  noticedCount,
 	}
 	return noTx, nil
 }
 
-func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, isNotice int, noticedCount int) error {
+func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, targetAddress string, isNotice int, noticedCount int) error {
 	txdb.lock.Lock()
 	defer txdb.lock.Unlock()
 	tx, err := txdb.db.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare("insert or replace into noticeTx(txHash, value, wechatTxId, isNotice, noticedCount) values(?,?,?,?,?)")
+	stmt, err := tx.Prepare("insert or replace into noticeTx(txHash, value, wechatTxId,targetAddress, isNotice, noticedCount) values(?,?,?,?,?,?)")
 	defer stmt.Close()
 	if err != nil {
 		tx.Rollback()
 		fmt.Println("err is ", err)
 		return err
 	}
-	_, err = stmt.Exec(txHash, value, wechatTxId, isNotice, noticedCount)
+	_, err = stmt.Exec(txHash, value, wechatTxId, targetAddress, isNotice, noticedCount)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -60,19 +64,19 @@ func (txdb *NoticeTxsDB) Put(txHash string, value int, wechatTxId string, isNoti
 	return nil
 }
 
-func (txdb *NoticeTxsDB) UpdateNotice(txHash string, value int, wechatTxId string, isNotice int, noticedCount int) error {
+func (txdb *NoticeTxsDB) UpdateNotice(txHash string, value int, wechatTxId string, targetAddress string, isNotice int, noticedCount int) error {
 	txdb.lock.Lock()
 	defer txdb.lock.Unlock()
 	tx, err := txdb.db.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare("update noticeTx set value=?, wechatTxId=? , isNotice=? ,noticedCount=? where txHash=?")
+	stmt, err := tx.Prepare("update noticeTx set value=?, wechatTxId=?, targetAddress=?, isNotice=?, noticedCount=? where txHash=?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(value, wechatTxId, isNotice, noticedCount, txHash)
+	_, err = stmt.Exec(value, wechatTxId, targetAddress, isNotice, noticedCount, txHash)
 	if err != nil {
 		tx.Rollback()
 		return err

@@ -98,7 +98,7 @@ func initDatabaseTables(db *sql.DB) error {
 	create table if not exists txns (txid text primary key not null, value integer, height integer, timestamp integer, watchOnly integer, tx blob);
 	create table if not exists watchedScripts (scriptPubKey text primary key not null);
 	create table if not exists scanBlocks (blockHash text primary key not null, blockHeight integer,isFixScan integer);
-	create table if not exists noticeTx (txHash text primary key not null, value integer, wechatTxId text, isNotice integer, noticedCount integer);
+	create table if not exists noticeTx (txHash text primary key not null, value integer, wechatTxId text,targetAddress text, isNotice integer, noticedCount integer);
 	create table if not exists config(key text primary key not null, value blob);
 	`
 	_, err := db.Exec(sqlStmt)

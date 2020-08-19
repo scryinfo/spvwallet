@@ -497,6 +497,7 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 				var tempPkScript []byte
 				var tempValue int64
 				var isExistTargetAddress = false
+				var targetAddress = ""
 				for _, value := range txOut {
 					config := NewDefaultConfig()
 					config.Params = &chaincfg.MainNetParams
@@ -515,6 +516,7 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 									//	log.Infof("appear equal txeg.TxHash()===> ", txeg.TxHash().String())
 									tempValue = value.Value
 									isExistTargetAddress = true
+									targetAddress = strings.ToLower(strings.Trim(address, ""))
 								}
 							}
 						} else {
@@ -522,9 +524,9 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 						}
 					}
 				}
-				if (isExistTargetAddress) { // 写入这笔交易到数据库，标识通知到小程序的状态为 未通知
+				if isExistTargetAddress { // 写入这笔交易到数据库，标识通知到小程序的状态为 未通知
 					log.Warningf("parker  txHash is %v, tempPkScrip =====> %v ", txeg.TxHash().String(), hex.EncodeToString(tempPkScript[:]))
-					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), 0, 0) // isNotice 0:failure , 1:successful
+					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), targetAddress, 0, 0) // isNotice 0:failure , 1:successful
 					if err != nil {
 						log.Infof("ws.txStore.ScanBlocks().Put err is =>", err)
 						isSuccessAnalyseAllBlock = false
