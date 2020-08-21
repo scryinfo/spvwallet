@@ -179,6 +179,29 @@ func (w *SPVWallet) LoadConfig(scryStartBlock int, intervalScanBlock time.Durati
 	TargetScanAddresses = targetScanAddress
 }
 
+type ScanBlockStruct struct {
+	BlockHash   string
+	BlockHeight int
+	IsScan      int
+}
+
+type ScanTxStruct struct {
+	TxHash        string
+	Value         int
+	WechatTxId    string
+	TargetAddress string
+	IsNotice      int
+	NoticedCount  int
+}
+
+func (w *SPVWallet) AddScanBlocksCallBack(callbackFunc func(ScanBlockStruct, error)) {
+	w.wireService.AddScanBlockCallBack(callbackFunc)
+}
+
+func (w *SPVWallet) AddScanTxsCallBack(callbackFunc func(ScanTxStruct, error)) {
+	w.wireService.AddScanTxsCallBack(callbackFunc)
+}
+
 func (w *SPVWallet) Start() {
 	w.running = true
 	go w.wireService.Start()

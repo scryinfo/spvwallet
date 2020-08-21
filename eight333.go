@@ -381,6 +381,17 @@ func (ws *WireService) handleDonePeerMsg(peer *peerpkg.Peer) {
 	}
 }
 
+var scanBlockCallbackFunc func(ScanBlockStruct, error)
+var scanTxsCallbackFunc func(ScanTxStruct, error)
+
+func (ws *WireService) AddScanBlockCallBack(callback func(ScanBlockStruct, error)) {
+	scanBlockCallbackFunc = callback
+}
+
+func (ws *WireService) AddScanTxsCallBack(callback func(ScanTxStruct, error)) {
+	scanTxsCallbackFunc = callback
+}
+
 // handleHeadersMsg handles block header messages from all peers.  Headers are
 // requested when performing a headers-first sync.
 func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
@@ -421,6 +432,13 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 		}
 		log.Infof("Received header %s at height %d", blockHeader.BlockHash().String(), height)
 		{
+			var scanBlock = ScanBlockStruct{
+				BlockHash:   blockHeader.BlockHash().String(),
+				BlockHeight: int(height),
+				IsScan:      0,
+			}
+			scanBlockCallbackFunc(scanBlock, nil)
+
 			if int(height) > ScryStartBlock {
 				{
 					var invet = wire.InvVect{
@@ -520,6 +538,15 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 					}
 				}
 				if isExistTargetAddress { // 写入这笔交易到数据库，标识通知到小程序的状态为 未通知
+					var txStruct = ScanTxStruct{
+						TxHash:        txeg.TxHash().String(),
+						Value:         int(tempValue),
+						WechatTxId:    hex.EncodeToString(tempPkScript[:]),
+						TargetAddress: targetAddress,
+						IsNotice:      0,
+						NoticedCount:  0,
+					}
+					scanTxsCallbackFunc(txStruct, nil)
 					log.Warningf("parker  txHash is %v, tempPkScrip =====> %v ", txeg.TxHash().String(), hex.EncodeToString(tempPkScript[:]))
 					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), targetAddress, 0, 0) // isNotice 0:failure , 1:successful
 					if err != nil {
