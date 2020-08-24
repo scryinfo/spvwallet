@@ -432,13 +432,6 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 		}
 		log.Infof("Received header %s at height %d", blockHeader.BlockHash().String(), height)
 		{
-			var scanBlock = ScanBlockStruct{
-				BlockHash:   blockHeader.BlockHash().String(),
-				BlockHeight: int(height),
-				IsScan:      0,
-			}
-			scanBlockCallbackFunc(scanBlock, nil)
-
 			if int(height) > ScryStartBlock {
 				{
 					var invet = wire.InvVect{
@@ -454,6 +447,14 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 					err = ws.txStore.ScanBlocks().Put(blockHeader.BlockHash().String(), int(height), int(0)) // isFixScan 0:failure  1:successful
 					if err != nil {
 						log.Infof("ws.txStore.ScanBlocks().Put err is ", err)
+					} else {
+						//回调通知callback
+						var scanBlock = ScanBlockStruct{
+							BlockHash:   blockHeader.BlockHash().String(),
+							BlockHeight: int(height),
+							IsScan:      0,
+						}
+						scanBlockCallbackFunc(scanBlock, nil)
 					}
 				}
 			}
