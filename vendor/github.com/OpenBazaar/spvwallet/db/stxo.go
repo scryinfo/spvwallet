@@ -3,9 +3,9 @@ package db
 import (
 	"database/sql"
 	"encoding/hex"
-	"github.com/OpenBazaar/wallet-interface"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
+	"github.com/scryinfo/wallet-interface"
 	"strconv"
 	"strings"
 	"sync"

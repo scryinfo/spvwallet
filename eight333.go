@@ -381,14 +381,14 @@ func (ws *WireService) handleDonePeerMsg(peer *peerpkg.Peer) {
 	}
 }
 
-var scanBlockCallbackFunc func(ScanBlockStruct, error)
-var scanTxsCallbackFunc func(ScanTxStruct, error)
+var scanBlockHeadsCallBackFunc func(ScanBlockStruct, error) bool
+var scanTxsCallbackFunc func(ScanTxStruct, error) bool
 
-func (ws *WireService) AddScanBlockCallBack(callback func(ScanBlockStruct, error)) {
-	scanBlockCallbackFunc = callback
+func (ws *WireService) AddScanBlockHeadsCallBack(callback func(ScanBlockStruct, error) bool) {
+	scanBlockHeadsCallBackFunc = callback
 }
 
-func (ws *WireService) AddScanTxsCallBack(callback func(ScanTxStruct, error)) {
+func (ws *WireService) AddScanTxsCallBack(callback func(ScanTxStruct, error) bool) {
 	scanTxsCallbackFunc = callback
 }
 
@@ -454,7 +454,12 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 							BlockHeight: int(height),
 							IsScan:      0,
 						}
-						scanBlockCallbackFunc(scanBlock, nil)
+						if scanBlockHeadsCallBackFunc != nil {
+							var callbackStatus = scanBlockHeadsCallBackFunc(scanBlock, nil)
+							if !callbackStatus {
+								log.Infof("sync BlockHead err is failure", callbackStatus)
+							}
+						}
 					}
 				}
 			}
@@ -547,7 +552,13 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 						IsNotice:      0,
 						NoticedCount:  0,
 					}
-					scanTxsCallbackFunc(txStruct, nil)
+					if scanTxsCallbackFunc != nil {
+						var callbackStatus = scanTxsCallbackFunc(txStruct, nil) //保证kim那边 成功接收
+						if !callbackStatus {
+							isSuccessAnalyseAllBlock = false
+							break AnalyseTxsLabel
+						}
+					}
 					log.Warningf("parker  txHash is %v, tempPkScrip =====> %v ", txeg.TxHash().String(), hex.EncodeToString(tempPkScript[:]))
 					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), targetAddress, 0, 0) // isNotice 0:failure , 1:successful
 					if err != nil {

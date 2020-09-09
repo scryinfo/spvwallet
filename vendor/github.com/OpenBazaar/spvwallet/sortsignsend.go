@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/OpenBazaar/wallet-interface"
 	"github.com/btcsuite/btcd/blockchain"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -23,6 +22,7 @@ import (
 	"github.com/btcsuite/btcutil/txsort"
 	"github.com/btcsuite/btcwallet/wallet/txauthor"
 	"github.com/btcsuite/btcwallet/wallet/txrules"
+	"github.com/scryinfo/wallet-interface"
 )
 
 func (s *SPVWallet) Broadcast(tx *wire.MsgTx) error {

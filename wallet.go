@@ -194,11 +194,11 @@ type ScanTxStruct struct {
 	NoticedCount  int
 }
 
-func (w *SPVWallet) AddScanBlocksCallBack(callbackFunc func(ScanBlockStruct, error)) {
-	w.wireService.AddScanBlockCallBack(callbackFunc)
+func (w *SPVWallet) AddScanBlockHeadsCallBack(callbackFunc func(ScanBlockStruct, error) bool) {
+	w.wireService.AddScanBlockHeadsCallBack(callbackFunc)
 }
 
-func (w *SPVWallet) AddScanTxsCallBack(callbackFunc func(ScanTxStruct, error)) {
+func (w *SPVWallet) AddScanTxsCallBack(callbackFunc func(ScanTxStruct, error) bool) {
 	w.wireService.AddScanTxsCallBack(callbackFunc)
 }
 

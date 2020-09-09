@@ -151,7 +151,7 @@ func NewPeerManager(config *PeerManagerConfig) (*PeerManager, error) {
 	listeners.OnTx = pm.onTx
 	listeners.OnReject = pm.onReject
 	listeners.OnBlock = pm.onBlock
-	
+
 	pm.peerConfig = &peer.Config{
 		UserAgentName:    config.UserAgentName,
 		UserAgentVersion: config.UserAgentVersion,

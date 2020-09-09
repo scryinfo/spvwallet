@@ -1,7 +1,7 @@
 # github.com/OpenBazaar/jsonpb v0.0.0-20171123000858-37d32ddf4eef
 ## explicit
 github.com/OpenBazaar/jsonpb
-# github.com/OpenBazaar/spvwallet v0.0.0-20200112224336-39f04e8d6d34
+# github.com/OpenBazaar/spvwallet v0.0.0-20200112224336-39f04e8d6d34 => ./
 ## explicit
 github.com/OpenBazaar/spvwallet
 github.com/OpenBazaar/spvwallet/api
@@ -11,9 +11,6 @@ github.com/OpenBazaar/spvwallet/db
 github.com/OpenBazaar/spvwallet/exchangerates
 github.com/OpenBazaar/spvwallet/gui
 github.com/OpenBazaar/spvwallet/gui/bootstrap
-# github.com/OpenBazaar/wallet-interface v0.0.0-20191220170011-ba95db86ca2f
-## explicit
-github.com/OpenBazaar/wallet-interface
 # github.com/asticode/go-astilectron v0.9.3
 ## explicit
 github.com/asticode/go-astilectron
@@ -101,8 +98,7 @@ github.com/julienschmidt/httprouter
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/mattn/go-colorable v0.1.4
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.11
-## explicit
+# github.com/mattn/go-isatty v0.0.10
 github.com/mattn/go-isatty
 # github.com/mattn/go-sqlite3 v2.0.2+incompatible
 ## explicit
@@ -122,6 +118,9 @@ github.com/pkg/errors
 # github.com/scryinfo/scryg v0.1.3
 ## explicit
 github.com/scryinfo/scryg/sutils/ssignal
+# github.com/scryinfo/wallet-interface v0.0.0-20200819032343-fa346955df0e
+## explicit
+github.com/scryinfo/wallet-interface
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
@@ -160,8 +159,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# google.golang.org/genproto v0.0.0-20190201180003-4b09977fb922
-## explicit
+# google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.18.0
 ## explicit
@@ -198,5 +196,4 @@ google.golang.org/grpc/resolver/passthrough
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# gopkg.in/natefinch/lumberjack.v2 v2.0.0
-## explicit
+# github.com/OpenBazaar/spvwallet => ./

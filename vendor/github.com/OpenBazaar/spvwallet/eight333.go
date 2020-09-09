@@ -16,11 +16,8 @@ import (
 )
 
 const (
-	maxRequestedTxns    = wire.MaxInvPerMsg
-	maxFalsePositives   = 7
-	scryStartBlock      = 643000                               // 从 643000 开始发通知，请求块
-	intervalToScanBlock = time.Second * 5                      //每隔**时间发起扫描块请求
-	targetScanAddress   = "1Po1oWkD2LmodfkBYiAktwh76vkF93LKnh" //目标扫描地址
+	maxRequestedTxns  = wire.MaxInvPerMsg
+	maxFalsePositives = 7
 )
 
 var lastTimeRequestBlock = time.Now()
@@ -143,33 +140,31 @@ func (ws *WireService) Start() {
 
 	go func() {
 		// 加入定时监听 ,发起请求区块blockHash 请求，查找数据库中记录的，还未收到的blockhash
-		var intervalTimer = time.NewTicker(intervalToScanBlock)
+		var intervalTimer = time.NewTicker(IntervalToScanBlock)
 		defer intervalTimer.Stop()
 		var requestBlockFunc = func() {
-			if time.Now().After(lastTimeRequestBlock.Add(intervalToScanBlock)) {
-				if (alivePeer == nil) {
-					fmt.Println("alivePeer is nil,time.Now().String()===>", time.Now().String())
+			if time.Now().After(lastTimeRequestBlock.Add(IntervalToScanBlock)) {
+				if alivePeer == nil {
+					log.Info("alivePeer is nil,time.Now().String()===>", time.Now().String())
 					return
 				}
-				fmt.Println("intervalTimer to do request again ,lastTimeRequestBlock is ===>", lastTimeRequestBlock)
 				var blockHashDb, err = ws.txStore.ScanBlocks().GetLatestUnScanBlockHash()
 				if err != nil {
-					fmt.Println("ws.txStore.ScanBlocks().GetLatestUnScanBlockHash error is ===>", err)
+					log.Info("ws.txStore.ScanBlocks().GetLatestUnScanBlockHash error is ===>", err)
 					return
 				}
-				fmt.Println("blockHashDb is ===>", blockHashDb)
 				var blockHash, err1 = chainhash.NewHashFromStr(blockHashDb)
 				if err1 != nil {
-					fmt.Println("chainhash.NewHashFromSt error is ===>", err)
+					log.Info("chainhash.NewHashFromSt error is ===>", err)
 					return
 				}
 				var invet *wire.InvVect = wire.NewInvVect(wire.InvTypeBlock, blockHash)
 				gdmsg2 := wire.NewMsgGetData()
 				gdmsg2.AddInvVect(invet)
 				alivePeer.QueueMessage(gdmsg2, nil)
-				fmt.Println("requestBlockFunc() send wire.InvTypeBlock request %s =-->", blockHash.String())
+				log.Info("requestBlockFunc(), send wire.InvTypeBlock request blockHash is  %s ===>", blockHash.String())
 			} else {
-				fmt.Println("time not enougth  something===>", lastTimeRequestBlock.Local().String()+"||time.Now()--->"+time.Now().String())
+				log.Info("time not enougth  something===>", lastTimeRequestBlock.Local().String()+"||time.Now()--->"+time.Now().String())
 			}
 		}
 		for {
@@ -386,6 +381,17 @@ func (ws *WireService) handleDonePeerMsg(peer *peerpkg.Peer) {
 	}
 }
 
+var scanBlockCallbackFunc func(ScanBlockStruct, error) bool
+var scanTxsCallbackFunc func(ScanTxStruct, error) bool
+
+func (ws *WireService) AddScanBlockCallBack(callback func(ScanBlockStruct, error) bool) {
+	scanBlockCallbackFunc = callback
+}
+
+func (ws *WireService) AddScanTxsCallBack(callback func(ScanTxStruct, error) bool) {
+	scanTxsCallbackFunc = callback
+}
+
 // handleHeadersMsg handles block header messages from all peers.  Headers are
 // requested when performing a headers-first sync.
 func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
@@ -426,7 +432,7 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 		}
 		log.Infof("Received header %s at height %d", blockHeader.BlockHash().String(), height)
 		{
-			if height > scryStartBlock {
+			if int(height) > ScryStartBlock {
 				{
 					var invet = wire.InvVect{
 						Type: wire.InvTypeBlock,
@@ -441,6 +447,17 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 					err = ws.txStore.ScanBlocks().Put(blockHeader.BlockHash().String(), int(height), int(0)) // isFixScan 0:failure  1:successful
 					if err != nil {
 						log.Infof("ws.txStore.ScanBlocks().Put err is ", err)
+					} else {
+						//回调通知callback
+						var scanBlock = ScanBlockStruct{
+							BlockHash:   blockHeader.BlockHash().String(),
+							BlockHeight: int(height),
+							IsScan:      0,
+						}
+						var callbackStatus = scanBlockCallbackFunc(scanBlock, nil)
+						if !callbackStatus {
+							log.Infof("sync BlockHead err is failure", callbackStatus)
+						}
 					}
 				}
 			}
@@ -471,7 +488,6 @@ func (ws *WireService) handleHeadersMsg(hmsg *headersMsg) {
 }
 
 func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
-	log.Warningf("parker handleBlockMsg method is enter！！！")
 	peer := bmsg.peer
 	_, exists := ws.peerStates[peer]
 	if !exists {
@@ -488,18 +504,18 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 		block := bmsg.block
 		header := block.Header
 		blockHash := header.BlockHash()
-		//	log.Warningf("parker block timestamp is %v ,|| header.BlockHash() is ==> %s ,previous hash is %s", header.Timestamp, blockHash, header.PrevBlock)
+		log.Warningf("handleBlockMsg(): header.BlockHash() is ==> %s ,|| block timestamp is %v ,|| previous hash is %s", blockHash, header.Timestamp, header.PrevBlock)
 		txs := block.Transactions
 		var isSuccessAnalyseAllBlock = true
 		{
 		AnalyseTxsLabel:
 			for _, value := range txs {
 				var txeg = value
-				//var txIn = txeg.TxIn
 				var txOut = txeg.TxOut
 				var tempPkScript []byte
 				var tempValue int64
 				var isExistTargetAddress = false
+				var targetAddress = ""
 				for _, value := range txOut {
 					config := NewDefaultConfig()
 					config.Params = &chaincfg.MainNetParams
@@ -509,19 +525,38 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 						if len(value.PkScript) > 2 {
 							tempPkScript = value.PkScript[2:] //前2位是标识位，取后面内容
 						}
-						// log.Warningf("parker  analyse address failure  ", err)
 					} else {
 						//	log.Warningf("parker  btcAddr is =====> %v ,txHash is ", btcAddr, txeg.TxHash().String())
-						if strings.ToLower(strings.Trim(btcAddr.String(), "")) == strings.ToLower(strings.Trim(targetScanAddress, "")) {
-							//	log.Infof("appear equal txeg.TxHash()===> ", txeg.TxHash().String())
-							tempValue = value.Value
-							isExistTargetAddress = true
+						if (TargetScanAddresses != nil) && len(TargetScanAddresses) > 0 {
+							for _, address := range TargetScanAddresses {
+								if strings.ToLower(strings.Trim(btcAddr.String(), "")) == strings.ToLower(strings.Trim(address, "")) {
+									//	log.Infof("appear equal txeg.TxHash()===> ", txeg.TxHash().String())
+									tempValue = value.Value
+									isExistTargetAddress = true
+									targetAddress = strings.ToLower(strings.Trim(address, ""))
+								}
+							}
+						} else {
+							fmt.Println("err(), error is===> no watch TargetScanAddresses")
 						}
 					}
 				}
-				if (isExistTargetAddress) { // 写入这笔交易到数据库，标识通知到小程序的状态为 未通知
+				if isExistTargetAddress { // 写入这笔交易到数据库，标识通知到小程序的状态为 未通知
+					var txStruct = ScanTxStruct{
+						TxHash:        txeg.TxHash().String(),
+						Value:         int(tempValue),
+						WechatTxId:    hex.EncodeToString(tempPkScript[:]),
+						TargetAddress: targetAddress,
+						IsNotice:      0,
+						NoticedCount:  0,
+					}
+					var callbackStatus = scanTxsCallbackFunc(txStruct, nil) //保证kim那边 成功接收
+					if (!callbackStatus) {
+						isSuccessAnalyseAllBlock = false
+						break AnalyseTxsLabel
+					}
 					log.Warningf("parker  txHash is %v, tempPkScrip =====> %v ", txeg.TxHash().String(), hex.EncodeToString(tempPkScript[:]))
-					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), 0) // isNotice 0:failure , 1:successful
+					var err = ws.txStore.NoticeTxs().Put(txeg.TxHash().String(), int(tempValue), hex.EncodeToString(tempPkScript[:]), targetAddress, 0, 0) // isNotice 0:failure , 1:successful
 					if err != nil {
 						log.Infof("ws.txStore.ScanBlocks().Put err is =>", err)
 						isSuccessAnalyseAllBlock = false
@@ -529,11 +564,9 @@ func (ws *WireService) handleBlockMsg(bmsg *blockMsg) {
 					}
 					isExistTargetAddress = false
 				}
-				//	log.Warningf("parker the end of for each txOut index is -----%v", index)
 			}
-			//	log.Warningf("parker the end of for Block  blockHahs is -----%v", blockHash)
 		}
-		if (isSuccessAnalyseAllBlock) {
+		if isSuccessAnalyseAllBlock {
 			var err = ws.txStore.ScanBlocks().UpdateBlock(blockHash.String(), int(1)) // isFixScan 0:failure  1:successful
 			if err != nil {
 				log.Infof("ws.txStore.ScanBlocks().Put err is ", err)

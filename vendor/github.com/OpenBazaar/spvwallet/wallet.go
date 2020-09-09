@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/OpenBazaar/wallet-interface"
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -18,6 +17,7 @@ import (
 	hd "github.com/btcsuite/btcutil/hdkeychain"
 	"github.com/btcsuite/btcwallet/wallet/txrules"
 	"github.com/op/go-logging"
+	"github.com/scryinfo/wallet-interface"
 	b39 "github.com/tyler-smith/go-bip39"
 
 	"github.com/OpenBazaar/spvwallet/exchangerates"
@@ -167,6 +167,39 @@ func NewSPVWallet(config *Config) (*SPVWallet, error) {
 	}
 
 	return w, nil
+}
+
+var ScryStartBlock = 643000
+var IntervalToScanBlock = time.Second * 5
+var TargetScanAddresses []string
+
+func (w *SPVWallet) LoadConfig(scryStartBlock int, intervalScanBlock time.Duration, targetScanAddress []string) {
+	ScryStartBlock = scryStartBlock
+	IntervalToScanBlock = intervalScanBlock
+	TargetScanAddresses = targetScanAddress
+}
+
+type ScanBlockStruct struct {
+	BlockHash   string
+	BlockHeight int
+	IsScan      int
+}
+
+type ScanTxStruct struct {
+	TxHash        string
+	Value         int
+	WechatTxId    string
+	TargetAddress string
+	IsNotice      int
+	NoticedCount  int
+}
+
+func (w *SPVWallet) AddScanBlocksCallBack(callbackFunc func(ScanBlockStruct, error) bool) {
+	w.wireService.AddScanBlockCallBack(callbackFunc)
+}
+
+func (w *SPVWallet) AddScanTxsCallBack(callbackFunc func(ScanTxStruct, error) bool) {
+	w.wireService.AddScanTxsCallBack(callbackFunc)
 }
 
 func (w *SPVWallet) Start() {

@@ -3,7 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/OpenBazaar/wallet-interface"
+	"github.com/scryinfo/wallet-interface"
 	"sync"
 )
 
